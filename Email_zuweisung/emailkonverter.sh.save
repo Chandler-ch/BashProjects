@@ -1,0 +1,94 @@
+#!/bin/bash
+i=0
+#rm Script
+rm *.tar
+rm -rdf ressourcen
+mkdir ressourcen
+rm *imports.csv
+rm -rdf kuvert
+mkdir kuvert
+rm -rdf briefe
+mkdir briefe
+Datum=$(echo $(date '+%Y-%m-%d'))
+Date=$(echo $(date '+%d-%m-%Y'))
+endung=mailimports.csv
+
+       cut -d, -f2 MOCK_DATA.csv >> ressourcen/vorname
+       cut -d, -f3 MOCK_DATA.csv >> ressourcen/nachname
+       cut -d, -f4 MOCK_DATA.csv >> ressourcen/gender
+       cut -d, -f5 MOCK_DATA.csv >> ressourcen/strasse
+       cut -d, -f6 MOCK_DATA.csv >> ressourcen/str_nummer
+	cut -d, -f7 MOCK_DATA.csv >> ressourcen/plz
+       cut -d, -f8 MOCK_DATA.csv >> ressourcen/ort
+
+until [ $i -gt 1000 ];
+do
+#	l=$(head -n $i MOCK_DATA.csv | tail -1)
+	echo $i
+	((i++))
+	v=$(head -n $i ressourcen/vorname | tail -1)
+	n=$(head -n $i ressourcen/nachname | tail -1)
+	s=$(head -n $i ressourcen/strasse | tail -1)
+	str=$(head -n $i ressourcen/str_nummer |tail -1)
+	plz=$(head -n $i ressourcen/plz | tail -1)
+	ort=$(head -n $i ressourcen/ort | tail -1)
+	e=$v2.$n2@email.com
+	echo $e
+	echo $v2
+	echo $n2
+	v2=$(echo "$v" | tr 'á' 'a' | tr 'à' 'a' | tr 'å' 'a' | tr 'Å' 'A' | tr 'ä' 'ae' | tr 'é' 'e' | tr 'è' 'e' | 
+	tr 'ë' 'e' | tr 'í' 'i' | tr 'ì' 'i' | tr 'ï' 'i' | tr 'î' 'i' | tr 'ó' 'o' | tr 'ò' 'o' | tr 'Ö' 'O' | 
+	tr 'ö' 'oe' | tr 'ü' 'u' | tr 'ú' 'u' | tr 'ù' 'u' | tr 'ç' 'c' | tr '[:upper:]' '[:lower:]')
+	echo $v2 >> ressourcen/vorname2
+	n2=$(echo "$n" | tr 'á' 'a' | tr 'à' 'a' | tr 'å' 'a' | tr 'Å' 'A' | tr 'ä' 'ae' | tr 'é' 'e' | tr 'è' 'e' |
+        tr 'ë' 'e' | tr 'í' 'i' | tr 'ì' 'i' | tr 'ï' 'i' | tr 'î' 'i' | tr 'ó' 'o' | tr 'ò' 'o' | tr 'Ö' 'O' |
+        tr 'ö' 'oe' | tr 'ü' 'u' | tr 'ú' 'u' | tr 'ù' 'u' | tr 'ç' 'c' | tr ' ' '_'| tr '[:upper:]' '[:lower:]')
+	echo $n2 >> ressourcen/nachname2
+	pwd=$(echo $RANDOM | md5sum | head -c 20; echo;)
+	echo ${e}';'${pwd} >> $Datum$endung
+	echo $e
+	echo $v2 $n2
+	e=$v2.$n2@email.com
+	touch kuvert/$Datum'_'$e'.brf'
+
+#EMAIL BRIEF
+echo Technische Berufsschule Zürich >> briefe/$e.txt
+echo Ausstellungsstrasse 70 >> briefe/$e.txt
+echo 8005 Zürich >> briefe/$e.txt
+echo "  "
+echo Zürich, den $Date >> briefe/$e.txt
+echo "                                                                 $v2 $n2" >> briefe/$e.txt
+echo "                                                                 $s $str" >> briefe/$e.txt
+echo "                                                                 $plz $ort" >> briefe/$e.txt
+echo ' ' >> briefe/$e.txt
+echo ' ' >> briefe/$e.txt
+echo Liebe:r $v2 >> briefe/$e.txt
+echo " " >> briefe/$e.txt
+echo 'Es freut uns Sie im neuen Schuljahr begrüssen zu dürfen.' >> briefe/$e.txt
+echo 'Damit Sie am ersten Tag sich in unsere Systeme einloggen' >> briefe/$e.txt
+echo 'können, erhalten Sie hier Ihre neue Emailadresse und Ihr' >> briefe/$e.txt
+echo 'Initialpasswort, das Sie beim ersten Login wechseln müssen.' >> briefe/$e.txt
+echo ' ' >> briefe/$e.txt
+echo Emailadresse: $e >> briefe/$e.txt
+echo Passwort: $pwd >> briefe/$e.txt
+echo ' ' >> briefe/$e.txt
+echo ' ' >> briefe/$e.txt
+echo 'Mit freundlichen Grüssen' >> briefe/$e.txt
+echo ' ' >> briefe/$e.txt
+echo 'Rouven Chandler' >> briefe/$e.txt
+echo 'TBZ-IT-Service' >> briefe/$e.txt
+echo ' ' >> briefe/$e.txt
+echo ' ' >> briefe/$e.txt
+echo 'admin.it@tbz.ch, Abt. IT: +41 44 446 96 60' >> briefe/$e.txt
+
+done
+echo "finished"
+rm *.Van
+rm *.brf
+
+
+#Mail verschicken
+mail -s 'subject' -a From:HM\<harald.mueller@smart-mail.de\> harald.mueller@tbz.ch < msg.txt -A att.pdf
+
+# TAR
+tar -cf ${Datum}_newMails_A2B_Chandler.tar briefe/ kuvert/
